@@ -31,10 +31,11 @@ async function loadSongs(){
 }
 
 
-
 function parseSong(text){
 
-    let lines = text.split("\n");
+    let lines = text
+        .split("\n")
+        .map(line => line.trim());
 
 
     let song = {
@@ -42,12 +43,33 @@ function parseSong(text){
         title:"",
         artist:"",
         chords:[],
+        strum:"",
+        capo:"",
         lyrics:[]
 
     };
 
 
-    lines.forEach(line=>{
+    lines.forEach((line,index)=>{
+
+
+        function nextValue(){
+
+            for(let i=index+1;i<lines.length;i++){
+
+                if(lines[i] !== ""){
+
+                    return lines[i];
+
+                }
+
+            }
+
+            return "";
+
+        }
+
+
 
         if(line.startsWith("TITLE:")){
 
@@ -65,23 +87,39 @@ function parseSong(text){
         }
 
 
-        if(line.startsWith("CHORDS:")){
+        if(line === "CHORDS:"){
 
             song.chords =
-            lines[
-                lines.indexOf(line)+1
-            ].trim().split(" ");
+            nextValue().split(" ");
+
+        }
+
+
+        if(line === "STRUM:"){
+
+            song.strum =
+            nextValue();
+
+        }
+
+
+        if(line === "CAPO:"){
+
+            song.capo =
+            nextValue();
 
         }
 
 
         if(line.includes("[")){
 
-    song.lyrics.push({
-        text: line
-    });
+            song.lyrics.push({
 
-}
+                text: line
+
+            });
+
+        }
 
 
     });
@@ -90,8 +128,6 @@ function parseSong(text){
     return song;
 
 }
-
-
 
 function displaySongs(list){
 
@@ -150,8 +186,20 @@ function openSong(song){
     document.getElementById("songArtist").innerText = song.artist;
 
 
-    document.getElementById("songChords").innerText =
-        song.chords.join("   ");
+    document.getElementById("songChords")
+.innerHTML = `
+
+ ${song.chords.join("  ")}
+
+<br>
+
+ ${song.strum}
+
+<br>
+
+ Capo: ${song.capo}
+
+`;
 
 
     let lyricsDiv = document.getElementById("lyrics");
