@@ -4,21 +4,22 @@ let currentSong = null;
 
 
 // Load songs
+let files = [];
 
 async function loadSongs(){
 
-    let files = [
-        "husn.md"
-    ];
+    let response = await fetch("songs.json");
+
+    files = await response.json();
 
 
     for(let file of files){
 
-        let response = await fetch(
+        let songResponse = await fetch(
             "songs/" + file
         );
 
-        let text = await response.text();
+        let text = await songResponse.text();
 
         songs.push(parseSong(text));
 
@@ -76,22 +77,11 @@ function parseSong(text){
 
         if(line.includes("[")){
 
-            let chord =
-            line.match(/\[(.*?)\]/)[1];
+    song.lyrics.push({
+        text: line
+    });
 
-
-            let text =
-            line.replace(/\[(.*?)\]/,"");
-
-
-            song.lyrics.push({
-
-                chord,
-                text
-
-            });
-
-        }
+}
 
 
     });
@@ -171,23 +161,21 @@ function openSong(song){
 
     song.lyrics.forEach(line => {
 
-        lyricsDiv.innerHTML +=
+    let formatted = line.text.replace(
+        /\[(.*?)\]/g,
+        `<span class="chord">$1</span>`
+    );
 
-        `
-        <div class="line">
 
-            <span class="chord">
-                ${line.chord}
-            </span>
+    lyricsDiv.innerHTML += `
 
-            <br>
+    <div class="line">
+        ${formatted}
+    </div>
 
-            ${line.text}
+    `;
 
-        </div>
-        `;
-
-    });
+});
 
 }
 

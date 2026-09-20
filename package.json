@@ -1,0 +1,21 @@
+{
+  "name": "ukulele",
+  "version": "1.0.0",
+  "description": "",
+  "main": "app.js",
+  "scripts": {
+    "prepare-songs": "node scripts/generateSongs.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/khushigarg2407/ukulele.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/khushigarg2407/ukulele/issues"
+  },
+  "homepage": "https://github.com/khushigarg2407/ukulele#readme"
+}

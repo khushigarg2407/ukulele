@@ -7,7 +7,7 @@ G Em C D
 D DUDUD
 
 
-[G]Dekho na kaise
+[G]Dekho na [Em]kaise
 
 [Em]Tere bina main
 
