@@ -55,8 +55,7 @@ const template = `TITLE: abc
 ARTIST: abc
 
 
-CHORDS:
-abc
+CHORDS: abc
 
 STRUM:
 dudud

@@ -1,10 +1,14 @@
 let songs = [];
-
 let currentSong = null;
+
+let scrollSpeed = 1;
+let scrollInterval = null;
 
 
 // Load songs
+
 let files = [];
+
 
 async function loadSongs(){
 
@@ -31,11 +35,12 @@ async function loadSongs(){
 }
 
 
+
+
 function parseSong(text){
 
     let lines = text
-        .split("\n")
-        .map(line => line.trim());
+        .split("\n");
 
 
     let song = {
@@ -45,79 +50,104 @@ function parseSong(text){
         chords:[],
         strum:"",
         capo:"",
-        lyrics:[]
+        lyrics:[],
+        mode:"raw"
 
     };
+
+
+    let lyricsStarted = false;
+    let rawLyrics = [];
+
 
 
     lines.forEach((line,index)=>{
 
 
-        function nextValue(){
+        if(line.trim() === "---"){
 
-            for(let i=index+1;i<lines.length;i++){
+            lyricsStarted = true;
+            return;
 
-                if(lines[i] !== ""){
+        }
 
-                    return lines[i];
 
-                }
+        if(lyricsStarted){
+
+            rawLyrics.push(line);
+
+            return;
+
+        }
+
+
+
+        let clean = line.trim();
+
+
+
+        if(clean.startsWith("TITLE:")){
+
+            song.title =
+            clean.replace("TITLE:","").trim();
+
+        }
+
+
+
+        if(clean.startsWith("ARTIST:")){
+
+            song.artist =
+            clean.replace("ARTIST:","").trim();
+
+        }
+
+
+
+        if(clean.startsWith("CHORDS:")){
+
+            song.chords =
+            clean.replace("CHORDS:","")
+            .trim()
+            .split(" ");
+
+        }
+
+
+
+        if(clean.startsWith("STRUM:")){
+
+            if(clean.length > 6){
+
+                song.strum =
+                clean.replace("STRUM:","").trim();
+
+            }
+            else{
+
+                song.strum =
+                getNextValue(lines,index);
 
             }
 
-            return "";
-
         }
 
 
 
-        if(line.startsWith("TITLE:")){
+        if(clean.startsWith("CAPO:")){
 
-            song.title =
-            line.replace("TITLE:","").trim();
+            if(clean.length > 5){
 
-        }
+                song.capo =
+                clean.replace("CAPO:","").trim();
 
+            }
+            else{
 
-        if(line.startsWith("ARTIST:")){
+                song.capo =
+                getNextValue(lines,index);
 
-            song.artist =
-            line.replace("ARTIST:","").trim();
-
-        }
-
-
-        if(line === "CHORDS:"){
-
-            song.chords =
-            nextValue().split(" ");
-
-        }
-
-
-        if(line === "STRUM:"){
-
-            song.strum =
-            nextValue();
-
-        }
-
-
-        if(line === "CAPO:"){
-
-            song.capo =
-            nextValue();
-
-        }
-
-
-        if(line.includes("[")){
-
-            song.lyrics.push({
-
-                text: line
-
-            });
+            }
 
         }
 
@@ -125,9 +155,53 @@ function parseSong(text){
     });
 
 
+
+    song.mode =
+    rawLyrics.some(
+        line => /\[.*?\]/.test(line)
+    )
+    ?
+    "chord"
+    :
+    "raw";
+
+
+
+    song.lyrics =
+    song.mode === "raw"
+    ?
+    rawLyrics.join("\n")
+    :
+    rawLyrics;
+
+
+
     return song;
 
 }
+
+
+
+
+function getNextValue(lines,index){
+
+    for(let i=index+1;i<lines.length;i++){
+
+        if(lines[i].trim() !== ""){
+
+            return lines[i].trim();
+
+        }
+
+    }
+
+    return "";
+
+}
+
+
+
+
 
 function displaySongs(list){
 
@@ -148,14 +222,18 @@ function displaySongs(list){
         card.className="songCard";
 
 
-        card.innerHTML=
+        card.innerHTML=`
 
-        `
-        <b>${song.title}</b>
-        <br>
+        <h3>🎵 ${song.title}</h3>
+
+        <div class="artist">
         ${song.artist}
-        <br>
-        &#127928; ${song.chords.join(" ")}
+        </div>
+
+        <div class="cardChords">
+        🎸 ${song.chords.join(" ")}
+        </div>
+
         `;
 
 
@@ -170,62 +248,103 @@ function displaySongs(list){
 }
 
 
+
+
 function openSong(song){
 
     currentSong = song;
 
-    document.getElementById("homePage")
-        .classList.add("hidden");
 
-    document.getElementById("songPage")
-        .classList.remove("hidden");
+    document
+    .getElementById("homePage")
+    .classList.add("hidden");
 
 
-    document.getElementById("songTitle").innerText = song.title;
+    document
+    .getElementById("songPage")
+    .classList.remove("hidden");
 
-    document.getElementById("songArtist").innerText = song.artist;
+
+
+    document.getElementById("songTitle")
+    .innerText=song.title;
+
+
+    document.getElementById("songArtist")
+    .innerText=song.artist;
+
 
 
     document.getElementById("songChords")
-.innerHTML = `
+    .innerHTML=`
 
- ${song.chords.join("  ")}
+    🎸 ${song.chords.join(" ")}
 
-<br>
+    <br>
 
- ${song.strum}
+    🥁 ${song.strum}
 
-<br>
+    <br>
 
- Capo: ${song.capo}
-
-`;
-
-
-    let lyricsDiv = document.getElementById("lyrics");
-
-    lyricsDiv.innerHTML = "";
-
-
-    song.lyrics.forEach(line => {
-
-    let formatted = line.text.replace(
-        /\[(.*?)\]/g,
-        `<span class="chord">$1</span>`
-    );
-
-
-    lyricsDiv.innerHTML += `
-
-    <div class="line">
-        ${formatted}
-    </div>
+    🎤 Capo: ${song.capo}
 
     `;
 
-});
+
+
+    let lyricsDiv =
+    document.getElementById("lyrics");
+
+
+    lyricsDiv.innerHTML="";
+
+
+
+    if(song.mode==="raw"){
+
+
+        lyricsDiv.innerHTML=`
+
+        <pre class="rawLyrics">
+        ${song.lyrics}
+        </pre>
+
+        `;
+
+
+    }
+    else{
+
+
+        song.lyrics.forEach(line=>{
+
+
+            let formatted =
+            line.replace(
+                /\[(.*?)\]/g,
+                `<span class="chord">$1</span>`
+            );
+
+
+            lyricsDiv.innerHTML +=`
+
+            <div class="line">
+            ${formatted}
+            </div>
+
+            `;
+
+
+        });
+
+
+    }
+
 
 }
+
+
+
 
 function goBack(){
 
@@ -239,117 +358,45 @@ function goBack(){
     .classList.remove("hidden");
 
 
-    window.scrollTo(0,0);
-
-}
-
-
-
-search.oninput=function(){
-
-    let value =
-    search.value.toLowerCase();
-
-
-    displaySongs(
-
-        songs.filter(song=>
-
-            song.title.toLowerCase().includes(value)
-
-            ||
-
-            song.artist.toLowerCase().includes(value)
-
-            ||
-
-            song.chords.join(" ")
-            .toLowerCase()
-            .includes(value)
-
-        )
-
-    );
-
-}
-
-
-
-// Auto Scroll
-
-
-
-function startScroll(){
-
     stopScroll();
 
-    scrollInterval=setInterval(()=>{
-
-        window.scrollBy(
-            0,
-            scrollSpeed
-        );
-
-    },50);
-
 }
 
 
 
-function increaseSpeed(){
 
-    scrollSpeed += 0.5;
-
-    updateSpeed();
-
-}
-
-
-
-function decreaseSpeed(){
-
-    if(scrollSpeed > 0.5){
-
-        scrollSpeed -= 0.5;
-
-    }
-
-    updateSpeed();
-
-}
-
-
-
-function updateSpeed(){
-
-    document.getElementById(
-        "scrollSpeed"
-    ).innerText =
-    scrollSpeed.toFixed(1)+"x";
-
-}
-
-let scrollSpeed = 1;
-let scrollInterval = null;
-
-
-function toggleScroll(){
-
-    let button = document.getElementById("scrollButton");
-
+function stopScroll(){
 
     if(scrollInterval){
 
         clearInterval(scrollInterval);
 
-        scrollInterval = null;
+        scrollInterval=null;
 
-        button.innerText = "▶";
+    }
+
+}
+
+
+
+
+function toggleScroll(){
+
+    let button =
+    document.getElementById("scrollButton");
+
+
+    if(scrollInterval){
+
+        stopScroll();
+
+        button.innerText="▶";
 
     }
     else{
 
-        scrollInterval = setInterval(()=>{
+
+        scrollInterval=setInterval(()=>{
 
             window.scrollBy(
                 0,
@@ -359,7 +406,7 @@ function toggleScroll(){
         },50);
 
 
-        button.innerText = "Ⅱ";
+        button.innerText="Ⅱ";
 
     }
 
@@ -367,9 +414,10 @@ function toggleScroll(){
 
 
 
+
 function increaseSpeed(){
 
-    scrollSpeed += 0.5;
+    scrollSpeed+=0.5;
 
     updateSpeed();
 
@@ -379,9 +427,9 @@ function increaseSpeed(){
 
 function decreaseSpeed(){
 
-    if(scrollSpeed > 0.5){
+    if(scrollSpeed>0.5){
 
-        scrollSpeed -= 0.5;
+        scrollSpeed-=0.5;
 
     }
 
@@ -394,10 +442,44 @@ function decreaseSpeed(){
 function updateSpeed(){
 
     document.getElementById("scrollSpeed")
-    .innerText =
+    .innerText=
     scrollSpeed.toFixed(1)+"x";
 
 }
+
+
+
+
+
+document
+.getElementById("search")
+.oninput=function(){
+
+    let value =
+    this.value.toLowerCase();
+
+
+    displaySongs(
+
+        songs.filter(song=>
+
+            song.title.toLowerCase()
+            .includes(value)
+
+            ||
+
+            song.artist.toLowerCase()
+            .includes(value)
+
+        )
+
+    );
+
+
+};
+
+
+
 
 
 loadSongs();
