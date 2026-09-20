@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>🎸 SongBook</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<div class="container">
+
+    <h1>🎸 SongBook</h1>
+
+    <div id="homePage">
+
+        <input 
+            id="search"
+            placeholder="Search song, artist, chord..."
+        />
+
+        <div id="songList"></div>
+
+    </div>
+
+
+    <div id="songPage" class="hidden">
+
+        <button onclick="goBack()">← Back</button>
+
+        <h2 id="songTitle"></h2>
+        <h3 id="songArtist"></h3>
+
+        <h4>Chords</h4>
+        <div id="songChords"></div>
+
+        <hr>
+
+        <div id="lyrics"></div>
+
+
+        <div class="scrollControl">
+
+    <button onclick="increaseSpeed()">▲</button>
+
+    <span id="scrollSpeed">
+        1.0x
+    </span>
+
+    <button onclick="toggleScroll()" id="scrollButton">
+        ▶️
+    </button>
+
+    <button onclick="decreaseSpeed()">▼</button>
+
+</div>
+
+    </div>
+
+</div>
+
+
+<script src="app.js"></script>
+
+</body>
+</html>
